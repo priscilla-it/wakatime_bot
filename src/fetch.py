@@ -47,9 +47,9 @@ def week_offset(start_day: int = 1) -> tuple[str, str]:
     start_date_str = start_date.strftime('%Y-%m-%d')
     end_date_str = end_date.strftime('%Y-%m-%d')
 
-    print(f'[DEBUG] Current date: {today}')
-    print(f'[DEBUG] Start of week (formatted): {start_date_str}')
-    print(f'[DEBUG] End of week (formatted): {end_date_str}')
+    # print(f'[DEBUG] Current date: {today}')
+    # print(f'[DEBUG] Start of week (formatted): {start_date_str}')
+    # print(f'[DEBUG] End of week (formatted): {end_date_str}')
 
     return start_date_str, end_date_str
 
@@ -61,6 +61,6 @@ async def fetch_wakatime_data(api_key: str) -> Optional[Dict[str, Any]]:
         f'?start={start_of_week}&end={end_of_week}'
     )
 
-    print(f'[DEBUG] Wakatime API URL: {url}')
+    # print(f'[DEBUG] Wakatime API URL: {url}')
 
     return await make_wakatime_request(url, api_key)
