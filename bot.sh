@@ -2,6 +2,14 @@
 
 SESSION_NAME="wakatime_bot"
 
+if [ "$1" == "--start" ]; then
+    uv run src/bot.py
+    else
+        echo "❌"
+    fi
+    exit 0
+fi
+
 if [ "$1" == "--stop" ]; then
     if screen -list | grep -q "$SESSION_NAME"; then
         screen -S "$SESSION_NAME" -X quit
@@ -34,4 +42,3 @@ else
     echo "❌ Не удалось запустить бота."
     exit 1
 fi
-

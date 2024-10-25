@@ -4,7 +4,8 @@ from db import get_async_session, User
 from sqlalchemy.future import select
 from languages import LANGUAGES, EXCLUDED_LANGUAGES
 from logger import logger
-from fetch import fetch_wakatime_data, fetch_wakatime_user, week
+from fetch import fetch_wakatime_data, fetch_wakatime_user
+
 from aiohttp.client_exceptions import (
     ClientConnectorError,
 )
@@ -16,7 +17,7 @@ EXCLUDE_LANGUAGES_ENABLED = True
 
 def format_time(seconds):
     hours, minutes = divmod(int(seconds // 60), 60)
-    return f"{hours}ч {minutes}мин" if hours else f"{minutes}мин"
+    return f'{hours}ч {minutes}мин' if hours else f'{minutes}мин'
 
 
 async def send_weekly_report(user_id, chat_id, bot, reply_to_message_id):
@@ -31,27 +32,27 @@ async def send_weekly_report(user_id, chat_id, bot, reply_to_message_id):
             try:
                 data = await fetch_wakatime_data(user.wakatime_api_key)
             except ClientConnectorError as e:
-                logger.error(f"❌ Ошибка соединения с Wakatime: {e}")
+                logger.error(f'❌ Ошибка соединения с Wakatime: {e}')
                 return
 
-            if data and data.get("data"):
+            if data and data.get('data'):
                 language_times = {}
                 total_seconds = sum(
                     (
-                        language["total_seconds"]
-                        for day in data["data"]
-                        for language in day["languages"]
+                        language['total_seconds']
+                        for day in data['data']
+                        for language in day['languages']
                         if not (
                             EXCLUDE_LANGUAGES_ENABLED
-                            and language["name"] in EXCLUDED_LANGUAGES
+                            and language['name'] in EXCLUDED_LANGUAGES
                         )
                     )
                 )
 
-                for day in data["data"]:
-                    for language in day["languages"]:
-                        name = language["name"]
-                        seconds = language["total_seconds"]
+                for day in data['data']:
+                    for language in day['languages']:
+                        name = language['name']
+                        seconds = language['total_seconds']
 
                         if (
                             EXCLUDE_LANGUAGES_ENABLED
@@ -60,16 +61,16 @@ async def send_weekly_report(user_id, chat_id, bot, reply_to_message_id):
                             continue
 
                         if name in language_times:
-                            language_times[name]["total_seconds"] += seconds
+                            language_times[name]['total_seconds'] += seconds
                         else:
                             language_times[name] = {
-                                "total_seconds": seconds,
-                                "emoji": LANGUAGES.get(name, "💻"),
+                                'total_seconds': seconds,
+                                'emoji': LANGUAGES.get(name, '💻'),
                             }
 
                 sorted_languages = sorted(
                     language_times.items(),
-                    key=lambda item: item[1]["total_seconds"],
+                    key=lambda item: item[1]['total_seconds'],
                     reverse=True,
                 )[:15]
 
@@ -78,45 +79,45 @@ async def send_weekly_report(user_id, chat_id, bot, reply_to_message_id):
                     for name, details in sorted_languages
                 ]
 
-                start, end = week()
-
-                start_date = start.strftime("%d/%m/%Y")
-                end_date = end.strftime("%d/%m/%Y")
+                # start, end = week()
+                #
+                # start_date = start.strftime('%d/%m/%Y')
+                # end_date = end.strftime('%d/%m/%Y')
 
                 report = (
-                    f"📝 *Отчет за последние 7 дней для @{nickname}:*\n\n"
-                    + "\n".join(report_lines)
-                    + f"\n\n⏳ *Общее время*: {format_time(total_seconds)}"
-                    + f"\n📅 *Период* от {start_date} до {end_date}."
+                    f'📝 *Отчёт за последние 7 дней для @{nickname}:*\n\n'
+                    + '\n'.join(report_lines)
+                    + f'\n\n⏳ *Общее время*: {format_time(total_seconds)}'
+                    # + f'\n📅 *Период* от {start_date} до {end_date}.'
                 )
 
-                retry_attempts = 3  # Number of retry attempts
+                retry_attempts = 3
                 for attempt in range(retry_attempts):
                     try:
                         await bot.send_message(
                             chat_id,
                             report,
-                            parse_mode="Markdown",
+                            parse_mode='Markdown',
                             reply_to_message_id=reply_to_message_id,
                         )
                         logger.info(
-                            f"✅ Отправлен отчёт Wakatime пользователю @{nickname} (telegram: {user_id})"
+                            f'✅ Отправлен отчёт Wakatime пользователю @{nickname} (telegram: {user_id})'
                         )
-                        break  # Exit the loop on successful send
+                        break
                     except TelegramNetworkError as e:
-                        logger.error(f"❌ Ошибка сети Telegram: {e}")
+                        logger.error(f'❌ Ошибка сети Telegram: {e}')
                         if attempt < retry_attempts - 1:
                             await asyncio.sleep(2**attempt)
                     except Exception as e:
-                        logger.error(f"❌ Ошибка при отправке сообщения: {e}")
+                        logger.error(f'❌ Ошибка при отправке сообщения: {e}')
                         break
             else:
                 await bot.send_message(
-                    chat_id, "❌ Нет данных о времени, проведенном в коде."
+                    chat_id, '❌ Нет данных о времени, проведенном в коде.'
                 )
         else:
             await bot.send_message(
-                chat_id, "❌ Ошибка: не найден API ключ Wakatime."
+                chat_id, '❌ Ошибка: не найден API ключ Wakatime.'
             )
 
 
